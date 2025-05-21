@@ -28,13 +28,18 @@ public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne
     private User user;
+
     private LocalDate date;
+
     @ManyToOne
     private TimeSlot timeSlot;
+
     @ManyToOne
     private Theme theme;
+
     @Enumerated(EnumType.STRING)
     private ReservationStatus status = ReservationStatus.RESERVED;
 
@@ -50,13 +55,20 @@ public class Reservation {
     protected Reservation() {
     }
 
-    public static Reservation ofExisting(final long id, final User user, final LocalDate date, final TimeSlot timeSlot,
-                                         final Theme theme) {
+    public static Reservation ofExisting(final long id,
+                                         final User user,
+                                         final LocalDate date,
+                                         final TimeSlot timeSlot,
+                                         final Theme theme
+    ) {
         return new Reservation(id, user, date, timeSlot, theme);
     }
 
-    public static Reservation reserveNewly(final User user, final LocalDate date, final TimeSlot timeSlot,
-                                           final Theme theme) {
+    public static Reservation reserveNewly(final User user,
+                                           final LocalDate date,
+                                           final TimeSlot timeSlot,
+                                           final Theme theme
+    ) {
         if (isBeforeNow(date, timeSlot)) {
             throw new BusinessRuleViolationException("이전 날짜로 예약할 수 없습니다.");
         }
@@ -65,10 +77,10 @@ public class Reservation {
 
     private static boolean isBeforeNow(final LocalDate date, final TimeSlot timeSlot) {
         var now = LocalDateTime.now();
-        var today = now.toLocalDate();
-        var timeNow = now.toLocalTime();
-        return date.isBefore(today)
-                || (date.isEqual(today) && timeSlot.isTimeBefore(timeNow));
+        var todayDate = now.toLocalDate();
+        var todayTime = now.toLocalTime();
+
+        return date.isBefore(todayDate) || (date.isEqual(todayDate) && timeSlot.isTimeBefore(todayTime));
     }
 
     public boolean isDateEquals(final LocalDate date) {

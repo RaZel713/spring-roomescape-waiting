@@ -27,12 +27,15 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
+
     @Enumerated(EnumType.STRING)
     private UserRole role;
-    private String email;
-    private String password;
 
+    private String email;
+
+    private String password;
 
     public User(final Long id, final String name, final UserRole role, final String email, final String password) {
         validateNameLength(name);
