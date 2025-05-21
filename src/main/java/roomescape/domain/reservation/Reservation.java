@@ -91,4 +91,3 @@ public class Reservation {
         return this.timeSlot.isSameAs(timeSlot);
     }
 }
-
