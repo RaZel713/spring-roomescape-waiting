@@ -1,11 +1,12 @@
 package roomescape.infrastructure;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.Jwts.SIG;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.interfaces.JWTVerifier;
 import java.util.Date;
-import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import roomescape.domain.auth.AuthenticationInfo;
 import roomescape.domain.auth.AuthenticationTokenHandler;
@@ -14,24 +15,30 @@ import roomescape.domain.user.UserRole;
 @Component
 public class JwtTokenHandler implements AuthenticationTokenHandler {
 
-    private static final SecretKey SECRET_KEY = SIG.HS256.key().build();
-    private static final long EXPIRATION_DURATION_IN_MILLISECONDS = 900_000L;
+    private final Algorithm algorithm;
+    private final long validityInMilliseconds;
 
+    public JwtTokenHandler(
+            @Value("${security.jwt.token.secret-key}") String secretKey,
+            @Value("${security.jwt.token.expire-length}") long validityInMilliseconds
+    ) {
+        this.algorithm = Algorithm.HMAC256(secretKey);
+        this.validityInMilliseconds = validityInMilliseconds;
+    }
+
+    @Override
     public String createToken(final AuthenticationInfo authenticationInfo) {
         var userId = String.valueOf(authenticationInfo.id());
         var userRole = authenticationInfo.role().name();
-        Claims claims = Jwts.claims()
-                .subject(userId)
-                .add("role", userRole)
-                .build();
         Date now = new Date();
-        Date validity = new Date(now.getTime() + EXPIRATION_DURATION_IN_MILLISECONDS);
+        Date validity = new Date(now.getTime() + validityInMilliseconds);
 
-        return Jwts.builder()
-                .claims(claims)
-                .expiration(validity)
-                .signWith(SECRET_KEY)
-                .compact();
+        return JWT.create()
+                .withSubject(userId)
+                .withClaim("role", userRole)
+                .withIssuedAt(now)
+                .withExpiresAt(validity)
+                .sign(algorithm);
     }
 
     @Override
@@ -40,26 +47,27 @@ public class JwtTokenHandler implements AuthenticationTokenHandler {
         return authenticationInfo.id();
     }
 
+    @Override
     public AuthenticationInfo extractAuthenticationInfo(final String token) {
-        var payload = Jwts.parser()
-                .verifyWith(SECRET_KEY)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        DecodedJWT decodedJWT = getVerifier().verify(token);
+        long id = Long.parseLong(decodedJWT.getSubject());
+        UserRole role = UserRole.valueOf(decodedJWT.getClaim("role").asString());
 
-        var id = Long.parseLong(payload.getSubject());
-        var role = UserRole.valueOf(payload.get("role", String.class));
         return new AuthenticationInfo(id, role);
     }
 
+    @Override
     public boolean isValidToken(final String token) {
         try {
-            var claims = Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token);
-            var isExpired = claims.getPayload().getExpiration().before(new Date());
-            return !isExpired;
-        } catch (JwtException | IllegalArgumentException e) {
+            DecodedJWT decodedJWT = getVerifier().verify(token);
+            return !decodedJWT.getExpiresAt().before(new Date());
+        } catch (JWTVerificationException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    private JWTVerifier getVerifier() {
+        return JWT.require(algorithm).build();
     }
 }
 
