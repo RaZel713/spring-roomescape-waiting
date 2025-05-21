@@ -15,6 +15,7 @@ import roomescape.exception.NotFoundException;
 public class ThemeService {
 
     private static final int MAX_THEME_FETCH_COUNT = 5;
+
     private final ReservationRepository reservationRepository;
     private final ThemeRepository themeRepository;
 
