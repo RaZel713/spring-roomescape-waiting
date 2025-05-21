@@ -18,11 +18,11 @@ import roomescape.domain.timeslot.TimeSlot;
 import roomescape.domain.user.User;
 import roomescape.exception.BusinessRuleViolationException;
 
+@Entity
 @EqualsAndHashCode(of = {"id"})
 @Getter
 @Accessors(fluent = true)
 @ToString
-@Entity
 public class Reservation {
 
     @Id

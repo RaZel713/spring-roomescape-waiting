@@ -10,11 +10,11 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import roomescape.exception.BusinessRuleViolationException;
 
+@Entity
 @EqualsAndHashCode(of = {"id"})
 @Getter
 @Accessors(fluent = true)
 @ToString
-@Entity
 public class Theme {
 
     private static final int NAME_MAX_LENGTH = 10;

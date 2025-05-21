@@ -13,11 +13,11 @@ import lombok.experimental.Accessors;
 import roomescape.exception.BusinessRuleViolationException;
 import roomescape.exception.InvalidInputException;
 
+@Entity(name = "USERS")
 @EqualsAndHashCode(of = {"id"})
 @Getter
 @Accessors(fluent = true)
 @ToString
-@Entity(name = "USERS")
 public class User {
 
     private static final int NAME_MAX_LENGTH = 5;

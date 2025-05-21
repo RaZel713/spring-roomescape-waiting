@@ -10,11 +10,11 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+@Entity
 @EqualsAndHashCode(of = {"id"})
 @Getter
 @Accessors(fluent = true)
 @ToString
-@Entity
 public class TimeSlot {
 
     @Id
